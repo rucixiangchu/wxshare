@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>area_select.html</title>
+<script type="text/javascript" src="../static/js/include.js?jquery,jquery_json,bootstrap,jbox,lwzh"></script>
+<script type="text/javascript">
+	$(document).ready(function() {
+		areaSelect.onLoad();
+	});
+
+	var areaSelect = (function() {
+		return {
+			onLoad : function() {
+				var $area = $("#area");
+				var $areaFrame = $("#areaFrame");
+
+				new jBox("Modal", {
+					attach : $area,
+					target : $area,
+					overlay : false,
+					draggable : "title",
+					position : {
+						x : "right",
+						y : "center"
+					},
+					offset : {
+						x : 360,
+						y : 160
+					},
+					width : 350,
+					height : 300,
+					title : "选择地区",
+					content : $areaFrame
+				});
+
+				window.onSelectAreaNode = function(treeNode) {
+					console.log(treeNode);
+					$area.val(treeNode.name);
+					$("#area_id").val(treeNode.id);
+				};
+			}
+		};
+	})();
+</script>
+<style type="text/css">
+</style>
+</head>
+<body>
+	<div class="container-fluid">
+		<br />
+		<br />
+		<br />
+		<br />
+		<br />
+		<div class="row">
+			<div class="col-md-6"></div>
+			<div class="col-md-2">
+				<label>选择地区：</label>
+				<input type="text" name="area_id" id="area_id" value="" />
+				<input type="text" name="area" id="area" value="" />
+				<iframe id="areaFrame" src="../category/area.html" style="display: none;" width="100%" height="100%" frameborder="no" border="0"></iframe>
+			</div>
+		</div>
+
+	</div>
+</body>
+</html>

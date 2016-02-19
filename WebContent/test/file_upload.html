@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>File Upload</title>
+<script type="text/javascript" src="../static/js/include.js?jquery,jquery_json,bootstrap,lwzh,webuploader"></script>
+<link rel="stylesheet" type="text/css" href="../static/demo.css">
+<script type="text/javascript" src="../static/demo.js"></script>
+<script type="text/javascript">
+	$(document).ready(function() {
+		fileUpload.onLoad();
+	});
+
+	var fileUpload = (function() {
+		return {
+			onLoad : function() {
+				//fileUpload.initWebUploader();
+			},
+			onUploadFile : function() {
+				var callback = function() {
+					var text = $("#hidden_frame").contents().text();
+					if (text == "") {
+						setTimeout(function() {
+							callback();
+						}, 100);
+					} else {
+						$("#hidden_frame").contents().empty();
+						var json = lwzh.parseJSON(text);
+						var filePath = json.fileList[0];
+						window.open(lwzh.getContextPath() + filePath);
+					}
+				};
+				// 绑定事件
+				$("#fileForm").unbind("submit");
+				$("#fileForm").bind("submit", callback);
+				// 执行提交
+				$("#fileForm").submit();
+			},
+			initWebUploader : function() {
+				var $imgThumbs = $("#imgThumbs");
+				var $img = $imgThumbs.find("img");
+				var $span = $imgThumbs.find("span");
+				var $input = $imgThumbs.find("input");
+
+				var uploader = WebUploader.create({
+					swf : lwzh.getContextPath() + "/static/js/webuploader/Uploader.swf",
+					server : lwzh.getContextPath() + "/fs/uploadFile.json?temp=true",
+					auto : true,
+					pick : "#filePicker"
+				});
+
+				uploader.on("fileQueued", function(file) {
+					uploader.makeThumb(file, function(error, src) {
+						if (error) {
+							$img.replaceWith("<span>不能预览</span>");
+							return;
+						}
+						$img.attr("src", src);
+					}, 100, 100);
+				});
+
+				uploader.on("uploadProgress", function(file, percentage) {
+					var p = percentage * 100 + "";
+					p = p.substring(0, 5);
+					$span.html(p + "%");
+				});
+
+				uploader.on("uploadSuccess", function(file, response) {
+					$span.html("上传成功");
+					$input.val(response.fileList[0]);
+				});
+
+				uploader.on("uploadError", function(file) {
+					$span.html("上传失败");
+				});
+
+				uploader.on("uploadComplete", function(file) {
+					$span.html("上传完成");
+				});
+			}
+		};
+	})();
+</script>
+<style type="text/css">
+</style>
+</head>
+<body>
+	<div class="container-fluid">
+
+		<div class="row">
+			<div class="col-md-12">
+
+				<iframe id="hidden_frame" name="hidden_frame" style="display: none;"></iframe>
+				<form id="fileForm" method="post" enctype="multipart/form-data" action="../fs/uploadFile.json" target="hidden_frame">
+					File to upload:
+					<input type="file" name="upfile">
+					<br />
+					Notes about the file:
+					<input type="text" name="note">
+					<br />
+					<br />
+					<button type="button" onclick="fileUpload.onUploadFile();">Submit</button>
+					to upload the file!
+				</form>
+
+			</div>
+		</div>
+
+		<hr />
+
+
+		<hr/>
+		<div class="row">
+			<div class="col-md-12">
+				<div id="uploader" class="wu-example">
+				    <div class="queueList">
+				        <div id="dndArea" class="placeholder">
+				            <div id="filePicker"></div>
+				            <p>或将照片拖到这里，单次最多可选300张</p>
+				        </div>
+				    </div>
+				    <div class="statusBar" style="display:none;">
+				        <div class="progress">
+				            <span class="text">0%</span>
+				            <span class="percentage"></span>
+				        </div><div class="info"></div>
+				        <div class="btns">
+				            <div id="filePicker2"></div><div class="uploadBtn">开始上传</div>
+				        </div>
+				    </div>
+				</div>
+			</div>
+		</div>
+
+	</div>
+</body>
+</html>

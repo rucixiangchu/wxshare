@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gather Data</title>
+<script type="text/javascript" src="../static/js/include.js?jquery,jquery_json,bootstrap,baidumap,lwzh"></script>
+<script type="text/javascript">
+	$(document).ready(function() {
+		gatherData.onLoad();
+	});
+
+	var gatherData = (function() {
+
+		var points = null;
+
+		return {
+			onLoad : function() {
+			},
+			generateDataOne : function(times) {
+				var i = times - 1;
+				if (i < 0) {
+					return;
+				}
+
+				var $gatherDataForm = $("#gatherDataForm");
+
+				var $gather_time = $gatherDataForm.find("input[name='gather_time']");
+				if ($gather_time.val()) {
+					var $gather_time_gap = $gatherDataForm.find("input[name='gather_time_gap']");
+					var $gather_time_end = $gatherDataForm.find("input[name='gather_time_end']");
+
+					var time = parseInt($gather_time.val()) + parseInt($gather_time_gap.val());
+					$gather_time.val(time);
+					if (time > parseInt($gather_time_end.val())) {
+						return;
+					}
+				}
+
+				var $g2 = $gatherDataForm.find("input[name='g2']");
+				var $g3 = $gatherDataForm.find("input[name='g3']");
+				var $g4 = $gatherDataForm.find("input[name='g4']");
+				var $v1 = $gatherDataForm.find("input[name='v1']");
+				var $v2 = $gatherDataForm.find("input[name='v2']");
+
+				var g2Value = parseFloat($g2.val());
+				var g3Value = parseFloat($g3.val());
+				var v1Value = parseInt($v1.val());
+				var v2Value = parseInt($v2.val());
+
+				if (points && points.length > 0) {
+					if (!points[i]) {
+						return;
+					}
+					$g2.val("bd:" + points[i].lng);
+					$g3.val("bd:" + points[i].lat);
+				} else {
+					$g2.val(parseFloat(g2Value + Math.random() * 1).toFixed(4));
+					$g3.val(parseFloat(g3Value + Math.random() * 1).toFixed(4));
+				}
+				$v1.val(parseInt(v1Value + Math.random() * 50));
+				$v2.val(parseInt(v2Value + Math.random() * 100));
+
+				var param = $.param(lwzh.collectForm("gatherDataForm"));
+				$v1.val(v1Value);
+				$v2.val(v2Value);
+
+				console.log(i + ">>>" + param);
+				//return;
+				lwzh.ajax({
+					url : "/service/gather?" + param,
+					parseJSON : false,
+					callback : function(resp) {
+						console.log(i + "<<<" + resp);
+					}
+				});
+			},
+			generateData : function() {
+				var times = parseInt($("#times").val());
+				if (isNaN(times)) {
+					return false;
+				}
+
+				var times_compress = times;
+				if ($("#times_compress").val()) {
+					times_compress = parseInt($("#times_compress").val());
+				}
+				$("#times_compress").val(times_compress);
+
+				var gap = parseInt(times / times_compress);
+
+				if (times > 0) {
+					gatherData.generateDataOne(times);
+					times -= gap;
+					times_compress -= 1;
+					$("#times").val(times);
+					$("#times_compress").val(times_compress);
+				} else {
+					gatherData.generateDataOne(1);
+					$("#times").val("结束");
+					$("#times_compress").val("结束");
+
+					if ($("#autoExchangeSearchMap").is(":checked")) {
+						var $gatherDataForm = $("#gatherDataForm");
+						var $gather_time = $gatherDataForm.find("input[name='gather_time']");
+						var $gather_time_end = $gatherDataForm.find("input[name='gather_time_end']");
+						if (parseInt($gather_time.val()) < parseInt($gather_time_end.val())) {
+							gatherData.onExchangeSearchMap();
+							gatherData.onSearchMap(true);
+							return false;
+						}
+					}
+
+					return false;
+				}
+
+				var millisec = 1 * 50;
+				setTimeout(function() {
+					gatherData.generateData();
+				}, millisec);
+			},
+			onSearchMap : function(autoRun) {
+				var map = new BMap.Map("bdmap");
+				map.enableScrollWheelZoom();
+				map.addControl(new BMap.NavigationControl());
+				map.addControl(new BMap.ScaleControl());
+				map.addControl(new BMap.OverviewMapControl());
+
+				var driving = new BMap.DrivingRoute(map, {
+					renderOptions : {
+						map : map
+					},
+					policy : BMAP_DRIVING_POLICY_LEAST_DISTANCE,
+					onSearchComplete : function(results) {
+						points = [];
+						if (driving.getStatus() == BMAP_STATUS_SUCCESS) {
+							var plan = results.getPlan(0);
+							for (var i = 0; i < plan.getNumRoutes(); i++) {
+								var pathPoints = plan.getRoute(i).getPath();
+								points = points.concat(pathPoints);
+							}
+						} else {
+							console.log(driving.getStatus());
+						}
+						points.reverse();
+						$("#times").val(points.length);
+						if (points.length > 150) {
+							$("#times_compress").val(150);
+						} else {
+							$("#times_compress").val(points.length);
+						}
+
+						if (autoRun) {
+							gatherData.generateData();
+						}
+					}
+				});
+				driving.search($("#bdmap_start").val(), $("#bdmap_end").val());
+			},
+			onExchangeSearchMap : function() {
+				var bdmap_start = $("#bdmap_start").val();
+				var bdmap_end = $("#bdmap_end").val();
+				$("#bdmap_start").val(bdmap_end);
+				$("#bdmap_end").val(bdmap_start);
+			}
+		};
+	})();
+</script>
+<style type="text/css">
+#gatherDataForm span {
+	display: inline-block;
+	width: 200px;
+	text-align: right;
+}
+</style>
+</head>
+<body>
+	<div class="container-fluid">
+
+		<form id="gatherDataForm">
+			<div class="row">
+				<div class="col-md-7">
+					<span>
+						<button type="button" onclick="gatherData.generateData();" id="startBtn">生成数据</button>
+					</span>
+					<input type="text" id="times" value="1" />
+					<br>
+					<span>压缩数据量为：</span>
+					<input type="text" id="times_compress" value="" />
+					<br>
+					<span>传感器编码：</span>
+					<input type="text" name="id" value="" />
+					<br />
+					<span>开始时间（毫秒）：</span>
+					<input type="text" name="gather_time" value="1398916800000" />
+					<br />
+					<span>时间间隔（毫秒）：</span>
+					<input type="text" name="gather_time_gap" value="300000" />
+					<br />
+					<span>结束时间（毫秒）：</span>
+					<input type="text" name="gather_time_end" value="1433822400000" />
+					<br />
+					<span></span>
+					<a href="http://tool.chinaz.com/Tools/unixtime.aspx" target="_blank">Unix时间戳，单位秒，注意转换为毫秒</a>
+					<br />
+					<span>类型：</span>
+					<input type="text" name="type" value="10" />
+					<br />
+					<span>g1：</span>
+					<input type="text" name="g1" value="A" />
+					<br />
+					<span>g2（纬度）：</span>
+					<input type="text" name="g2" value="11381.5806" />
+					<br />
+					<span>g3（经度）：</span>
+					<input type="text" name="g3" value="3474.6634" />
+					<br />
+					<span>g4（速度）：</span>
+					<input type="text" name="g4" value="24.70" />
+					<br />
+					<span>g5：</span>
+					<input type="text" name="g5" value="260215064615" />
+					<br />
+					<span>g2,g3通过地图选择：</span>
+					<input type="text" id="bdmap_start" />
+					<button type="button" onclick="gatherData.onExchangeSearchMap();">互换</button>
+					<input type="text" id="bdmap_end" />
+					<button type="button" onclick="gatherData.onSearchMap();">搜索</button>
+					<br />
+					<span>自动运行：</span>
+					<input type="checkbox" id="autoExchangeSearchMap" checked />
+					自动互换
+					<button type="button" onclick="gatherData.onSearchMap(true);">RUN</button>
+					<br />
+					<div id="bdmap" style="width: 100%; height: 400px;"></div>
+					<br />
+				</div>
+
+				<div class="md-5">
+					<span>v1（温度）：</span>
+					<input type="text" name="v1" value="-200" />
+					<br />
+					<span>v2（湿度）：</span>
+					<input type="text" name="v2" value="500" />
+					<br />
+					<span>v3：</span>
+					<input type="text" name="v3" value="ndat" />
+					<br />
+					<span>v4：</span>
+					<input type="text" name="v4" value="ndat" />
+					<br />
+					<span>v5：</span>
+					<input type="text" name="v5" value="ndat" />
+					<br />
+					<span>v6：</span>
+					<input type="text" name="v6" value="ndat" />
+					<br />
+					<span>v7：</span>
+					<input type="text" name="v7" value="ndat" />
+					<br />
+					<span>v8：</span>
+					<input type="text" name="v8" value="ndat" />
+					<br />
+					<span>v9：</span>
+					<input type="text" name="v9" value="ndat" />
+					<br />
+					<span>v10：</span>
+					<input type="text" name="v10" value="ndat" />
+					<br />
+					<span>v11：</span>
+					<input type="text" name="v11" value="ndat" />
+					<br />
+					<span>v12：</span>
+					<input type="text" name="v12" value="ndat" />
+					<br />
+				</div>
+			</div>
+		</form>
+	</div>
+</body>
+</html>

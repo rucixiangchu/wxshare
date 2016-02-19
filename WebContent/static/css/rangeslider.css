@@ -1,0 +1,63 @@
+.rangeslider,
+.rangeslider__fill {
+  background:#c0c0c0;
+  display: block;
+  height: 2px;
+  -moz-box-shadow: inset 0px 1px 3px rgba(0, 0, 0, 0.3);
+  -webkit-box-shadow: inset 0px 1px 3px rgba(0, 0, 0, 0.3);
+  box-shadow: inset 0px 1px 3px rgba(0, 0, 0, 0.3);
+
+}
+
+.rangeslider {
+  position: relative;
+}
+
+.rangeslider--disabled {
+  filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=40);
+  opacity: 0.4;
+}
+
+.rangeslider__fill {
+  background: #ff4e54;
+  position: absolute;
+  top: 0;
+}
+
+.rangeslider__handle {
+  cursor: pointer;
+  display: inline-block;
+  width: 40px;
+  height: 40px;
+  position: absolute;
+  top: -15px;
+  background-image:url(../images/yl_slider.png);
+  background-size: 100%;
+
+}
+.rangeslider__handle:after {
+  content: "";
+  display: block;
+  width: 40px;
+  height: 40px;
+  margin: auto;
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+ background-image:url(../images/yl_slider.png);
+  background-size: 100%;
+ 
+}
+.rangeslider__handle:active {
+ background-image:url(../images/yl_slider.png);
+  background-size: 100%;
+  
+}
+
+input[type="range"]:focus + .rangeslider .rangeslider__handle {
+  -moz-box-shadow: 0 0 8px rgba(255, 0, 255, 0.9);
+  -webkit-box-shadow: 0 0 8px rgba(255, 0, 255, 0.9);
+  box-shadow: 0 0 8px rgba(255, 0, 255, 0.9);
+}

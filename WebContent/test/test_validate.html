@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>File Upload</title>
+<script type="text/javascript" src="../static/js/include.js?jquery,bootstrap,validation,datetimepicker"></script>
+
+<script type="text/javascript">
+	$(document).ready(function() {
+		validateForm.onLoad();
+		
+	});
+
+	var validateForm = (function() {
+		return {
+			onLoad : function() {
+				$('.form-horizontal').validate({  
+		            errorElement : 'span',  
+		            errorClass : 'help-block',  
+		            focusInvalid : false,  
+		            rules : {  
+		                name : {  
+		                    required : true,
+		                    username : true,
+		                    byteRangeLength : [ 6, 15 ],
+		                    remote : {
+			                     url : "../test/test_remote.json",
+			                     type : "get",
+			                     data : {
+			                     	name: function() {return $("#name").val();}
+			                     },
+			                     success: function(json) {
+			                    	 if(json.code=="1"){
+			                    		 return true;
+			                    	 }else{
+			                    		 return false;
+			                    	 }
+			                     }
+		                    }
+		                },  
+		                password : {  
+		                    required : true,
+		                    minlength:6
+		                },
+		                compassword : {  
+		                    required : true,
+		                    equalTo:"#password"
+		                },
+		                email : {  
+		                    required : true,
+		                    email:true
+		                },  
+		                mobile : {  
+		                    required : true,
+		                    ismobile : true
+		                } 
+		            },  
+		            messages : {  
+		                name : {  
+		                    required : "用户名不能为空.",
+		                    username : "只能输入数字和小字母",
+		                    byteRangeLength : "用户名必须在6-15个字符之间(一个中文字算2个字符)",
+		                    remote: "用户名已经存在"
+		                },  
+		                password : {  
+		                    required : "请填写密码.",
+		                    minlength: "密码不能小于6个字符"
+		                }, 
+		                compassword : {  
+		                    required : "请填写密码.",
+		                    equalTo: "两次输入密码不一致"
+		                }, 
+		                email : {  
+		                    required : "请填写邮箱.", 
+		                    email: "邮箱格式不正确"
+		                },
+		                mobile : {
+		                    required : "请填写手机号.",
+		                    ismobile : "手机号不正确"
+		                }
+		            },  
+		  
+		            highlight : function(element) {  
+		                $(element).closest('.form-group').addClass('has-error');  
+		            },  
+		  
+		            success : function(label) {  
+		                label.closest('.form-group').removeClass('has-error');  
+		                label.remove();  
+		            },  
+		  
+		            errorPlacement : function(error, element) {  
+		                element.parent('div').append(error);  
+		            },  
+		  
+		            submitHandler : function(form) {  
+		                form.submit();  
+		            }  
+		        });
+				
+				
+				
+				
+			}
+		};
+	})();
+</script>
+<style type="text/css">
+body{position: relative; padding-top:600px;}
+</style>
+</head>
+<body>
+
+				<form role="form" class="form-horizontal" action="javascript:alert('验证成功,可以提交.');" method="post">  
+                <div class="form-group">  
+                    <label class="col-md-2 control-label" for="name">用户名验证</label>  
+                    <div class="col-md-10">  
+                        <input class="form-control" name="name" type="text" id="name" placeholder="只能输入数字和小字母" value="" />  
+                    </div>  
+                </div>  
+                <div class="form-group">  
+                    <label class="col-md-2 control-label" for="exampleInputPassword1">密码</label>  
+                    <div class="col-md-10">  
+                        <input type="password" name="password" class="form-control" id="password" placeholder="Password">  
+                    </div>  
+                </div> 
+				<div class="form-group">  
+                    <label class="col-md-2 control-label" for="exampleInputPassword1">确认密码</label>  
+                    <div class="col-md-10">  
+                        <input type="password" name="compassword" class="form-control" id="compassword" placeholder="Password">  
+                    </div>  
+                </div>  
+                <div class="form-group">  
+                    <label for="hobby" class="control-label col-md-2">邮箱</label>  
+                    <div class="col-md-10">  
+                        <input type="text" name="email" class="form-control" id="email" placeholder="xxxxx@xx.com">  
+                    </div>  
+                </div>
+                <div class="form-group">  
+                    <label class="control-label col-md-2">手机号</label>  
+                    <div class="col-md-10">  
+                        <input type="text" name="mobile" maxlength="11" class="form-control" id="mobile">  
+                    </div>  
+                </div>  
+                
+                <div class="form-group">
+						<label class="control-label col-md-2">生产日期:</label>
+						<div class="col-md-10 ">
+							<input class="form-control" type="text" name="product_time"
+								value="" data-date-format="yyyy-mm-dd" data-provide="datetimepicker" />
+						</div>
+					</div>
+  
+                <div class="form-group">  
+                    <div class="col-md-offset-2 col-md-10">  
+                        <button type="submit" class="btn btn-primary btn-sm">  
+                            	验证  
+                        </button>  
+                        <button type="reset" class="btn btn-primary btn-sm">  
+                            Reset  
+                        </button>  
+                    </div>  
+                </div>  
+            </form>
+</body>
+</html>
